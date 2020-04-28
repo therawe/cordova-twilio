@@ -1,0 +1,38 @@
+{
+  "_args": [
+    [
+      "git+https://github.com/okode/cordova-plugin-twilio-video.git",
+      "/Users/travis/Source/therawe-client"
+    ]
+  ],
+  "_from": "git+https://github.com/okode/cordova-plugin-twilio-video.git",
+  "_id": "cordova-plugin-twilio-video@git+https://github.com/okode/cordova-plugin-twilio-video.git#1ed35d5b825911c39f8dfd7b4a891e533e0de40a",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/cordova-plugin-twilio-video",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "git+https://github.com/okode/cordova-plugin-twilio-video.git",
+    "rawSpec": "git+https://github.com/okode/cordova-plugin-twilio-video.git",
+    "saveSpec": "git+https://github.com/okode/cordova-plugin-twilio-video.git",
+    "fetchSpec": "https://github.com/okode/cordova-plugin-twilio-video.git",
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "git+https://github.com/okode/cordova-plugin-twilio-video.git#1ed35d5b825911c39f8dfd7b4a891e533e0de40a",
+  "_spec": "git+https://github.com/okode/cordova-plugin-twilio-video.git",
+  "_where": "/Users/travis/Source/therawe-client",
+  "cordova_name": "Twilio video plugin",
+  "description": "Cordova Plugin for Twilio Video",
+  "engines": {},
+  "license": "MIT",
+  "name": "cordova-plugin-twilio-video",
+  "platforms": [
+    "android",
+    "ios"
+  ],
+  "version": "3.3.1"
+}
