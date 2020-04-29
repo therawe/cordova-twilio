@@ -15,6 +15,8 @@ NSString *const VIDEO_TRACK_REMOVED = @"VIDEO_TRACK_REMOVED";
 NSString *const PERMISSIONS_REQUIRED = @"PERMISSIONS_REQUIRED";
 NSString *const HANG_UP = @"HANG_UP";
 NSString *const CLOSED = @"CLOSED";
+NSString *const MUTED = @"MUTED";
+NSString *const UNMUTED = @"UNMUTED";
 
 @implementation TwilioVideoViewController
 
@@ -90,6 +92,11 @@ NSString *const CLOSED = @"CLOSED";
         self.localAudioTrack.enabled = !self.localAudioTrack.isEnabled;
         // If audio not enabled, mic is muted and button crossed out
         [self.micButton setSelected: !self.localAudioTrack.isEnabled];
+        if (self.localAudioTrack.enabled) {
+            [[TwilioVideoManager getInstance] publishEvent: UNMUTED];
+        } else {
+            [[TwilioVideoManager getInstance] publishEvent: MUTED];
+        }
     }
 }
 
