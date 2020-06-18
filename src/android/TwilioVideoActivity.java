@@ -20,6 +20,8 @@ import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.twilio.video.CameraCapturer;
 import com.twilio.video.CameraCapturer.CameraSource;
@@ -90,11 +92,16 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
     private CameraCapturerCompat cameraCapturer;
     private LocalAudioTrack localAudioTrack;
     private LocalVideoTrack localVideoTrack;
-    private FloatingActionButton connectActionFab;
-    private FloatingActionButton switchCameraActionFab;
-    private FloatingActionButton localVideoActionFab;
-    private FloatingActionButton muteActionFab;
-    private FloatingActionButton switchAudioActionFab;
+    // private FloatingActionButton connectActionFab;
+    private TextView callEndText;
+    private TextView switchCameraActionText;
+    private TextView localVideoActionText;
+    private TextView muteActionText;
+    // private FloatingActionButton switchCameraActionFab;
+    // private FloatingActionButton localVideoActionFab;
+    // private FloatingActionButton muteActionFab;
+    private LinearLayout videoMainLinearLayout;
+    // private FloatingActionButton switchAudioActionFab;
     private AudioManager audioManager;
     private String participantIdentity;
 
@@ -118,11 +125,13 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
         primaryVideoView = findViewById(FAKE_R.getId("primary_video_view"));
         thumbnailVideoView = findViewById(FAKE_R.getId("thumbnail_video_view"));
 
-        connectActionFab = findViewById(FAKE_R.getId("connect_action_fab"));
-        switchCameraActionFab = findViewById(FAKE_R.getId("switch_camera_action_fab"));
-        localVideoActionFab = findViewById(FAKE_R.getId("local_video_action_fab"));
-        muteActionFab = findViewById(FAKE_R.getId("mute_action_fab"));
-        switchAudioActionFab = findViewById(FAKE_R.getId("switch_audio_action_fab"));
+        // connectActionFab = findViewById(FAKE_R.getId("connect_action_fab"));
+        callEndText = findViewById(FAKE_R.getId("call_end_text"));
+        switchCameraActionText = findViewById(FAKE_R.getId("switch_camera_action_text"));
+        localVideoActionText = findViewById(FAKE_R.getId("local_video_action_text"));
+        muteActionText = findViewById(FAKE_R.getId("mute_action_text"));
+        videoMainLinearLayout = findViewById(FAKE_R.getId("video_main_linear_layout"));
+        // switchAudioActionFab = findViewById(FAKE_R.getId("switch_audio_action_fab"));
 
         /*
          * Enable changing the volume using the up/down keys during a conversation
@@ -326,35 +335,40 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
         if (config.getPrimaryColorHex() != null) {
             int primaryColor = Color.parseColor(config.getPrimaryColorHex());
             ColorStateList color = ColorStateList.valueOf(primaryColor);
-            connectActionFab.setBackgroundTintList(color);
+            // connectActionFab.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
         }
 
         if (config.getSecondaryColorHex() != null) {
             int secondaryColor = Color.parseColor(config.getSecondaryColorHex());
             ColorStateList color = ColorStateList.valueOf(secondaryColor);
-            switchCameraActionFab.setBackgroundTintList(color);
-            localVideoActionFab.setBackgroundTintList(color);
-            muteActionFab.setBackgroundTintList(color);
-            switchAudioActionFab.setBackgroundTintList(color);
+            // switchCameraActionFab.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            // localVideoActionFab.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            // muteActionFab.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            // switchAudioActionFab.setBackgroundTintList(color);
         }
 
-        switchCameraActionFab.show();
-        switchCameraActionFab.setOnClickListener(switchCameraClickListener());
-        localVideoActionFab.show();
-        localVideoActionFab.setOnClickListener(localVideoClickListener());
-        muteActionFab.show();
-        muteActionFab.setOnClickListener(muteClickListener());
-        switchAudioActionFab.show();
-        switchAudioActionFab.setOnClickListener(switchAudioClickListener());
+        // switchCameraActionFab.show();
+        switchCameraActionText.setOnClickListener(switchCameraClickListener());
+        // localVideoActionFab.show();
+        localVideoActionText.setOnClickListener(localVideoClickListener());
+        // muteActionFab.show();
+        videoMainLinearLayout.setVisibility(View.VISIBLE);
+        muteActionText.setOnClickListener(muteClickListener());
+        // switchAudioActionFab.show();
+        // switchAudioActionFab.setOnClickListener(switchAudioClickListener());
     }
 
     /*
      * The actions performed during disconnect.
      */
     private void setDisconnectAction() {
-        connectActionFab.setImageDrawable(ContextCompat.getDrawable(this, FAKE_R.getDrawable("ic_call_end_white_24px")));
-        connectActionFab.show();
-        connectActionFab.setOnClickListener(disconnectClickListener());
+        // connectActionFab.setImageDrawable(ContextCompat.getDrawable(this, FAKE_R.getDrawable("ic_cancel_presentation_24px")));
+        // connectActionFab.show();
+        // connectActionFab.setOnClickListener(disconnectClickListener());
+
+        // callEndText.setImageDrawable(ContextCompat.getDrawable(this, FAKE_R.getDrawable("ic_cancel_presentation_24px")));
+        // callEndText.show();
+        callEndText.setOnClickListener(disconnectClickListener());
     }
 
     /*
@@ -764,7 +778,7 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
         };
     }
 
-    private View.OnClickListener switchAudioClickListener() {
+    /*private View.OnClickListener switchAudioClickListener() {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -776,11 +790,11 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
                 }
                 int icon = audioManager.isSpeakerphoneOn() ?
                         FAKE_R.getDrawable("ic_phonelink_ring_white_24dp") : FAKE_R.getDrawable("ic_volume_headhphones_white_24dp");
-                switchAudioActionFab.setImageDrawable(ContextCompat.getDrawable(
+                 switchAudioActionFab.setImageDrawable(ContextCompat.getDrawable(
                         TwilioVideoActivity.this, icon));
             }
         };
-    }
+    }*/
 
     private View.OnClickListener localVideoClickListener() {
         return new View.OnClickListener() {
@@ -794,15 +808,15 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
                     localVideoTrack.enable(enable);
                     int icon;
                     if (enable) {
-                        icon = FAKE_R.getDrawable("ic_videocam_green_24px");
-                        switchCameraActionFab.show();
+                        // icon = FAKE_R.getDrawable("ic_videocam_green_24px");
+                        // switchCameraActionFab.show();
                     } else {
-                        icon = FAKE_R.getDrawable("ic_videocam_off_red_24px");
-                        switchCameraActionFab.hide();
+                        // icon = FAKE_R.getDrawable("ic_videocam_off_red_24px");
+                        // switchCameraActionFab.hide();
                     }
 
-                    localVideoActionFab.setImageDrawable(
-                            ContextCompat.getDrawable(TwilioVideoActivity.this, icon));
+                    // localVideoActionFab.setImageDrawable(
+                        //    ContextCompat.getDrawable(TwilioVideoActivity.this, icon));
                 }
             }
         };
@@ -820,10 +834,10 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
                 if (localAudioTrack != null) {
                     boolean enable = !localAudioTrack.isEnabled();
                     localAudioTrack.enable(enable);
-                    int icon = enable ?
-                            FAKE_R.getDrawable("ic_mic_green_24px") : FAKE_R.getDrawable("ic_mic_off_red_24px");
-                    muteActionFab.setImageDrawable(ContextCompat.getDrawable(
-                            TwilioVideoActivity.this, icon));
+                    // int icon = enable ?
+                      //       FAKE_R.getDrawable("ic_mic_green_24px") : FAKE_R.getDrawable("ic_mic_off_red_24px");
+                    // muteActionFab.setImageDrawable(ContextCompat.getDrawable(
+                           //  TwilioVideoActivity.this, icon));
                 }
             }
         };
