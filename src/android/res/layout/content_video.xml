@@ -16,7 +16,9 @@
         android:layout_width="96dp"
         android:layout_height="96dp"
         android:layout_margin="16dp"
-        android:layout_gravity="bottom|start"/>
+        android:layout_gravity="top|end"
+        android:background="@drawable/rounded_gray_bg"
+        />
 
     <com.twilio.video.VideoView
         android:id="@+id/primary_video_view"
