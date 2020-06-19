@@ -1,6 +1,7 @@
 package org.apache.cordova.twiliovideo;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -78,13 +79,15 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
      */
     private Room room;
     private LocalParticipant localParticipant;
-
+    private RemoteParticipant remoteParticipant;
+    private VideoTrack originalRemoteTrack;
     /*
      * A VideoView receives frames from a local or remote video track and renders them
      * to an associated view.
      */
     private VideoView primaryVideoView;
     private VideoView thumbnailVideoView;
+
 
     /*
      * Android application UI elements
@@ -402,10 +405,28 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
     /*
      * Set primary view as renderer for participant video track
      */
+    @SuppressLint("LongLogTag")
     private void addRemoteParticipantVideo(VideoTrack videoTrack) {
-        primaryVideoView.setVisibility(View.VISIBLE);
+
+        boolean screenShare = false;
+
+        Log.d("originalRemoteTrack", String.valueOf(originalRemoteTrack));
+        if (originalRemoteTrack == null) {
+            originalRemoteTrack = videoTrack;
+        } else {
+            originalRemoteTrack.removeRenderer(primaryVideoView);
+            screenShare = true;
+            originalRemoteTrack = null;
+        }
+        Log.d("videoTrack", String.valueOf(videoTrack));
+        Log.d("videoTrack localVideoTrack", String.valueOf(localVideoTrack));
+        Log.d("videoTrack primaryVideoView", String.valueOf(primaryVideoView));
         primaryVideoView.setMirror(false);
+        if (screenShare) {
+            // originalRemoteTrack.addRenderer(primaryVideoView);
+        }
         videoTrack.addRenderer(primaryVideoView);
+        primaryVideoView.setVisibility(View.VISIBLE);
     }
 
     private void moveLocalVideoToThumbnailView() {
