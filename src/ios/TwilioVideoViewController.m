@@ -414,8 +414,27 @@ NSString *const UNMUTED = @"UNMUTED";
     [[TwilioVideoManager getInstance] publishEvent: VIDEO_TRACK_ADDED];
 
     if (self.remoteParticipant == participant) {
-        [self setupRemoteView];
-        [videoTrack addRenderer:self.remoteView];
+        [self logMessage: [NSString stringWithFormat:@"%lu video tracks", [self.remoteParticipant.videoTracks count]]];
+        
+        if ([self.remoteParticipant.videoTracks count] > 1) {
+            [self.remoteView removeFromSuperview];
+            [self setupRemoteView];
+//            TVIRemoteVideoTrack *videoTrack2 = self.remoteParticipant.remoteVideoTracks[0].remoteTrack;
+//            [videoTrack2 removeRenderer:self.remoteView];
+//            unsigned long newTrack = [self.remoteParticipant.videoTracks count] % 2;
+            int newTrack = 0;
+            if ([self.remoteParticipant.videoTracks count] == 3 || [self.remoteParticipant.videoTracks count] >= 5) {
+                newTrack = 0;
+            } else {
+                newTrack = [self.remoteParticipant.videoTracks count] - 1;
+            }
+            TVIRemoteVideoTrack *videoTrack3 = self.remoteParticipant.remoteVideoTracks[newTrack].remoteTrack;
+            //TVIRemoteVideoTrack *videoTrack3 = self.remoteParticipant.remoteVideoTracks[0].remoteTrack;
+            [videoTrack3 addRenderer:self.remoteView];
+        } else {
+            [self setupRemoteView];
+            [videoTrack addRenderer:self.remoteView];
+        }
     }
 }
 
@@ -429,7 +448,7 @@ NSString *const UNMUTED = @"UNMUTED";
     [self logMessage:[NSString stringWithFormat:@"Unsubscribed from %@ video track for Participant %@",
                       publication.trackName, participant.identity]];
     [[TwilioVideoManager getInstance] publishEvent: VIDEO_TRACK_REMOVED];
-    
+    [self logMessage: [NSString stringWithFormat:@"%lu video tracks", [self.remoteParticipant.videoTracks count]]];
     if (self.remoteParticipant == participant) {
         [videoTrack removeRenderer:self.remoteView];
         [self.remoteView removeFromSuperview];
