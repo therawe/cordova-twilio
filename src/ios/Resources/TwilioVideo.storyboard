@@ -33,8 +33,7 @@
                                         <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="12"/>
                                         <inset key="titleEdgeInsets" minX="-25" minY="27" maxX="0.0" maxY="0.0"/>
                                         <inset key="imageEdgeInsets" minX="12" minY="-17" maxX="0.0" maxY="0.0"/>
-                                        <size key="titleShadowOffset" width="1" height="1"/>
-                                        <state key="normal" title="Mute" image="mute.png">
+                                        <state key="normal" title="Mute" image="mute_slash.png">
                                             <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <userDefinedRuntimeAttributes>
@@ -140,7 +139,7 @@
     <resources>
         <image name="end_call_tw.png" width="24" height="24"/>
         <image name="flip_camera.png" width="24" height="24"/>
-        <image name="mute.png" width="24" height="24"/>
+        <image name="mute_slash.png" width="24" height="24"/>
         <image name="video_camera.png" width="24" height="24"/>
     </resources>
 </document>
