@@ -39,25 +39,16 @@ NSString *const UNMUTED = @"UNMUTED";
     // Preview our local camera track in the local video preview view.
     [self startPreview];
     
-    // Disconnect and mic button will be displayed when client is connected to a room.
-    self.micButton.hidden = YES;
-    [self.micButton setImage:[UIImage imageNamed:@"mic"] forState: UIControlStateNormal];
-    [self.micButton setImage:[UIImage imageNamed:@"no_mic"] forState: UIControlStateSelected];
-    [self.videoButton setImage:[UIImage imageNamed:@"video"] forState: UIControlStateNormal];
-    [self.videoButton setImage:[UIImage imageNamed:@"no_video"] forState: UIControlStateSelected];
+    [self.micButton setImage:[UIImage imageNamed:@"mute"] forState: UIControlStateNormal];
+    [self.micButton setImage:[UIImage imageNamed:@"mute"] forState: UIControlStateSelected];
+    [self.videoButton setImage:[UIImage imageNamed:@"video_camera"] forState: UIControlStateNormal];
+    [self.videoButton setImage:[UIImage imageNamed:@"video_camera"] forState: UIControlStateSelected];
     
-    // Customize button colors
-    NSString *primaryColor = [self.config primaryColorHex];
-    if (primaryColor != NULL) {
-        self.disconnectButton.backgroundColor = [TwilioVideoConfig colorFromHexString:primaryColor];
-    }
     
-    NSString *secondaryColor = [self.config secondaryColorHex];
-    if (secondaryColor != NULL) {
-        self.micButton.backgroundColor = [TwilioVideoConfig colorFromHexString:secondaryColor];
-        self.videoButton.backgroundColor = [TwilioVideoConfig colorFromHexString:secondaryColor];
-        self.cameraSwitchButton.backgroundColor = [TwilioVideoConfig colorFromHexString:secondaryColor];
-    }
+    self.disconnectButton.backgroundColor = [UIColor clearColor];
+    self.micButton.backgroundColor = [UIColor clearColor];
+    self.videoButton.backgroundColor = [UIColor clearColor];
+    self.cameraSwitchButton.backgroundColor = [UIColor clearColor];
 }
 
 #pragma mark - Public
