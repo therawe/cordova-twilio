@@ -45,6 +45,21 @@
         <resource-file src="src/ios/Resources/switch_camera.png" target="Resources/switch_camera.png" />
         <resource-file src="src/ios/Resources/switch_camera@2x.png" target="Resources/switch_camera@2x.png" />
         <resource-file src="src/ios/Resources/switch_camera@3x.png" target="Resources/switch_camera@3x.png" />
+        <resource-file src="src/ios/Resources/end_call_tw.png" target="Resources/end_call_tw.png" />
+        <resource-file src="src/ios/Resources/end_call_tw@2x.png" target="Resources/end_call_tw@2x.png" />
+        <resource-file src="src/ios/Resources/end_call_tw@3x.png" target="Resources/end_call_tw@3x.png" />
+        <resource-file src="src/ios/Resources/flip_camera.png" target="Resources/flip_camera.png" />
+        <resource-file src="src/ios/Resources/flip_camera@2x.png" target="Resources/flip_camera@2x.png" />
+        <resource-file src="src/ios/Resources/flip_camera@3x.png" target="Resources/flip_camera@3x.png" />
+        <resource-file src="src/ios/Resources/video_camera.png" target="Resources/video_camera.png" />
+        <resource-file src="src/ios/Resources/video_camera@2x.png" target="Resources/video_camera@2x.png" />
+        <resource-file src="src/ios/Resources/video_camera@3x.png" target="Resources/video_camera@3x.png" />
+        <resource-file src="src/ios/Resources/mute_slash.png" target="Resources/mute_slash.png" />
+        <resource-file src="src/ios/Resources/mute_slash@2x.png" target="Resources/mute_slash@2x.png" />
+        <resource-file src="src/ios/Resources/mute_slash@3x.png" target="Resources/mute_slash@3x.png" />
+        <resource-file src="src/ios/Resources/video_camera_slash.png" target="Resources/video_camera_slash.png" />
+        <resource-file src="src/ios/Resources/video_camera_slash@2x.png" target="Resources/video_camera_slash@2x.png" />
+        <resource-file src="src/ios/Resources/video_camera_slash@3x.png" target="Resources/video_camera_slash@3x.png" />
 
         <framework src="TwilioVideo" type="podspec" spec="2.5.6"/>
         <podspec>
