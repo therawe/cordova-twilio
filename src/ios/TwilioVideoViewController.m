@@ -39,7 +39,7 @@ NSString *const UNMUTED = @"UNMUTED";
     // Preview our local camera track in the local video preview view.
     [self startPreview];
     
-    [self.micButton setImage:[UIImage imageNamed:@"mute_slash"] forState: UIControlStateNormal];
+    [self.micButton setImage:[UIImage imageNamed:@"mute"] forState: UIControlStateNormal];
     [self.micButton setTitle:@"Mute" forState: UIControlStateNormal];
     [self.micButton setImage:[UIImage imageNamed:@"mute_slash"] forState: UIControlStateSelected];
     [self.micButton setTitle:@"Unmute" forState: UIControlStateSelected];

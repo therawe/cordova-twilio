@@ -54,6 +54,9 @@
         <resource-file src="src/ios/Resources/video_camera.png" target="Resources/video_camera.png" />
         <resource-file src="src/ios/Resources/video_camera@2x.png" target="Resources/video_camera@2x.png" />
         <resource-file src="src/ios/Resources/video_camera@3x.png" target="Resources/video_camera@3x.png" />
+        <resource-file src="src/ios/Resources/mute.png" target="Resources/mute.png" />
+        <resource-file src="src/ios/Resources/mute@2x.png" target="Resources/mute@2x.png" />
+        <resource-file src="src/ios/Resources/mute@3x.png" target="Resources/mute@3x.png" />
         <resource-file src="src/ios/Resources/mute_slash.png" target="Resources/mute_slash.png" />
         <resource-file src="src/ios/Resources/mute_slash@2x.png" target="Resources/mute_slash@2x.png" />
         <resource-file src="src/ios/Resources/mute_slash@3x.png" target="Resources/mute_slash@3x.png" />
