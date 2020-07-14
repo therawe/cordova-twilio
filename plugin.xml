@@ -108,7 +108,6 @@
         
         <resource-file src="src/android/res/drawable/ic_call_black_24dp.xml" target="res/drawable/ic_call_black_24dp.xml" />
         <resource-file src="src/android/res/drawable/ic_call_end_white_24px.xml" target="res/drawable/ic_call_end_white_24px.xml" />
-        <resource-file src="src/android/res/drawable/ic_call_white_24px.xml" target="res/drawable/ic_call_white_24px.xml" />
         <resource-file src="src/android/res/drawable/ic_cancel_presentation_24px.xml" target="res/drawable/ic_cancel_presentation_24px.xml" />
         <resource-file src="src/android/res/drawable/ic_flip_camera_android_24px.xml" target="res/drawable/ic_flip_camera_android_24px.xml" />
         <resource-file src="src/android/res/drawable/ic_mic_green_24px.xml" target="res/drawable/ic_mic_green_24px.xml" />
@@ -130,7 +129,6 @@
         <resource-file src="src/android/res/values/strings.xml" target="res/values/strings.xml" />
         <resource-file src="src/android/res/values/styles.xml" target="res/values/styles.xml" />
 
-        <resource-file src="src/android/res/values-v21/styles.xml" target="res/values-v21/styles.xml" />
         <resource-file src="src/android/res/values-w820dp/dimens.xml" target="res/values-w820dp/dimens.xml" />
 
     </platform>
