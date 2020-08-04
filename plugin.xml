@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="cordova-plugin-twilio-video" version="3.3.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+<plugin id="cordova-plugin-twilio-video" version="3.3.5" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>TwilioVideo</name>
     <author>Okode</author>
     <license>MIT</license>
@@ -64,13 +64,13 @@
         <resource-file src="src/ios/Resources/video_camera_slash@2x.png" target="Resources/video_camera_slash@2x.png" />
         <resource-file src="src/ios/Resources/video_camera_slash@3x.png" target="Resources/video_camera_slash@3x.png" />
 
-        <framework src="TwilioVideo" type="podspec" spec="2.5.6"/>
+        <framework src="TwilioVideo" type="podspec" spec="3.6.0"/>
         <podspec>
             <config>
                 <source url="https://cdn.cocoapods.org/"/>
             </config>
             <pods>
-                <pod name="TwilioVideo" spec="2.5.6"/>
+                <pod name="TwilioVideo" spec="3.6.0"/>
             </pods>
         </podspec>
 
