@@ -40,12 +40,9 @@ NSString *const UNMUTED = @"UNMUTED";
     [self startPreview];
     
     [self.micButton setImage:[UIImage imageNamed:@"mute"] forState: UIControlStateNormal];
-    [self.micButton setTitle:@"Mute" forState: UIControlStateNormal];
-    [self.micButton setImage:[UIImage imageNamed:@"mute_slash"] forState: UIControlStateSelected];
-    [self.micButton setTitle:@"Unmute" forState: UIControlStateSelected];
+    [self.micButton setImage:[UIImage imageNamed:@"mute"] forState: UIControlStateSelected];
     [self.videoButton setImage:[UIImage imageNamed:@"video_camera"] forState: UIControlStateNormal];
-    [self.videoButton setImage:[UIImage imageNamed:@"video_camera_slash"] forState: UIControlStateSelected];
-    [self.videoButton setTitle:@"Show" forState: UIControlStateSelected];
+    [self.videoButton setImage:[UIImage imageNamed:@"video_camera"] forState: UIControlStateSelected];
     
     
     self.disconnectButton.backgroundColor = [UIColor clearColor];
@@ -195,7 +192,7 @@ NSString *const UNMUTED = @"UNMUTED";
     [self logMessage:@"Attempting to connect to room"];
 }
 
-- (void)setupRemoteView {
+- (void)setupMainRemoteView {
     // Creating `TVIVideoView` programmatically
     TVIVideoView *remoteView = [[TVIVideoView alloc] init];
         
@@ -204,9 +201,10 @@ NSString *const UNMUTED = @"UNMUTED";
     remoteView.contentMode = UIViewContentModeScaleAspectFill;
 
     [self.view insertSubview:remoteView atIndex:0];
-    self.remoteView = remoteView;
+//    self.remoteView = remoteView;
+    [self.remoteViews addObject:remoteView];
     
-    NSLayoutConstraint *centerX = [NSLayoutConstraint constraintWithItem:self.remoteView
+    NSLayoutConstraint *centerX = [NSLayoutConstraint constraintWithItem:self.remoteViews[0]
                                                                attribute:NSLayoutAttributeCenterX
                                                                relatedBy:NSLayoutRelationEqual
                                                                   toItem:self.view
@@ -214,7 +212,7 @@ NSString *const UNMUTED = @"UNMUTED";
                                                               multiplier:1
                                                                 constant:0];
     [self.view addConstraint:centerX];
-    NSLayoutConstraint *centerY = [NSLayoutConstraint constraintWithItem:self.remoteView
+    NSLayoutConstraint *centerY = [NSLayoutConstraint constraintWithItem:self.remoteViews[0]
                                                                attribute:NSLayoutAttributeCenterY
                                                                relatedBy:NSLayoutRelationEqual
                                                                   toItem:self.view
@@ -222,7 +220,7 @@ NSString *const UNMUTED = @"UNMUTED";
                                                               multiplier:1
                                                                 constant:0];
     [self.view addConstraint:centerY];
-    NSLayoutConstraint *width = [NSLayoutConstraint constraintWithItem:self.remoteView
+    NSLayoutConstraint *width = [NSLayoutConstraint constraintWithItem:self.remoteViews[0]
                                                              attribute:NSLayoutAttributeWidth
                                                              relatedBy:NSLayoutRelationEqual
                                                                 toItem:self.view
@@ -230,7 +228,7 @@ NSString *const UNMUTED = @"UNMUTED";
                                                             multiplier:1
                                                               constant:0];
     [self.view addConstraint:width];
-    NSLayoutConstraint *height = [NSLayoutConstraint constraintWithItem:self.remoteView
+    NSLayoutConstraint *height = [NSLayoutConstraint constraintWithItem:self.remoteViews[0]
                                                               attribute:NSLayoutAttributeHeight
                                                               relatedBy:NSLayoutRelationEqual
                                                                  toItem:self.view
@@ -238,6 +236,59 @@ NSString *const UNMUTED = @"UNMUTED";
                                                              multiplier:1
                                                                constant:0];
     [self.view addConstraint:height];
+    
+}
+
+- (void)setupAdditionalRemoteView {
+//    int height = 160;
+//    int width = 120;
+    // Creating `TVIVideoView` programmatically
+    TVIVideoView *remoteView = [[TVIVideoView alloc] init];
+        
+    // `TVIVideoView` supports UIViewContentModeScaleToFill, UIViewContentModeScaleAspectFill and UIViewContentModeScaleAspectFit
+    // UIViewContentModeScaleAspectFit is the default mode when you create `TVIVideoView` programmatically.
+    remoteView.contentMode = UIViewContentModeScaleAspectFill;
+
+    [self.view insertSubview:remoteView atIndex:0];
+//    self.remoteView = remoteView;
+    [self.remoteViews addObject:remoteView];
+    unsigned long newRemoteViewIndex = self.remoteViews.count - 1;
+
+    unsigned long nextY = 170 * (self.remoteViews.count);
+    [self logMessage:[NSString stringWithFormat:@"%lu: newRemoteViewIndex", newRemoteViewIndex]];
+    [self logMessage:[NSString stringWithFormat:@"%lu: nextY", nextY]];
+    NSLayoutConstraint *rightX = [NSLayoutConstraint constraintWithItem:self.remoteViews[newRemoteViewIndex]
+                                                               attribute:NSLayoutAttributeRight
+                                                               relatedBy:NSLayoutRelationEqual
+                                                                 toItem:self.view
+                                                               attribute:NSLayoutAttributeRight
+                                                              multiplier:1
+                                                                constant:0];
+    [self.view addConstraint:rightX];
+    NSLayoutConstraint *topY = [NSLayoutConstraint constraintWithItem:self.remoteViews[newRemoteViewIndex]
+                                                                attribute:NSLayoutAttributeTop
+                                                                relatedBy:NSLayoutRelationEqual
+                                                                   toItem:self.view
+                                                                attribute:NSLayoutAttributeTop
+                                                                multiplier:1
+                                                                 constant:nextY];
+    [self.view addConstraint:topY];
+    NSLayoutConstraint *width = [NSLayoutConstraint constraintWithItem:self.remoteViews[newRemoteViewIndex]
+                                                             attribute:NSLayoutAttributeWidth
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:nil
+                                                             attribute:NSLayoutAttributeNotAnAttribute
+                                                            multiplier:0
+                                                              constant:120];
+    [self.remoteViews[newRemoteViewIndex] addConstraint:width];
+    NSLayoutConstraint *height = [NSLayoutConstraint constraintWithItem:self.remoteViews[newRemoteViewIndex]
+                                                              attribute:NSLayoutAttributeHeight
+                                                              relatedBy:NSLayoutRelationEqual
+                                                                 toItem:nil
+                                                                 attribute:NSLayoutAttributeNotAnAttribute
+                                                             multiplier:0
+                                                               constant:160];
+    [self.remoteViews[newRemoteViewIndex] addConstraint:height];
 }
 
 // Reset the client ui status
@@ -250,8 +301,10 @@ NSString *const UNMUTED = @"UNMUTED";
     if (self.remoteParticipant) {
         if ([self.remoteParticipant.videoTracks count] > 0) {
             TVIRemoteVideoTrack *videoTrack = self.remoteParticipant.remoteVideoTracks[0].remoteTrack;
-            [videoTrack removeRenderer:self.remoteView];
-            [self.remoteView removeFromSuperview];
+            [videoTrack removeRenderer:self.remoteViews[0]];
+            [self.remoteViews[0] removeFromSuperview];
+//            [videoTrack removeRenderer:self.remoteView];
+//            [self.remoteView removeFromSuperview];
         }
         self.remoteParticipant = nil;
     }
@@ -291,6 +344,87 @@ NSString *const UNMUTED = @"UNMUTED";
     [self dismissViewControllerAnimated:NO completion:nil];
 }
 
+- (void) addRemoteVideoTrack:(TVIVideoTrack *)videoTrack
+               toParticipant:(TVIRemoteParticipant *)participant {
+    [self logMessage:[NSString stringWithFormat:@"%lu remote participants", self.remoteParticipants.count]];
+    if (!self.remoteViews) self.remoteViews = [[NSMutableArray alloc] init];
+    if (self.remoteParticipants.count == 1) {
+        [self setMainRemoteView:videoTrack toParticipant:participant];
+    } else {
+        [self setAdditionalRemoteView:videoTrack toParticipant:participant];
+    }
+}
+
+- (void)setMainRemoteView:(TVIVideoTrack *)videoTrack
+             toParticipant:(TVIRemoteParticipant *)participant {
+    
+    [self logMessage: [NSString stringWithFormat:@"%lu video tracks", [participant.videoTracks count]]];
+    
+    if ([participant.videoTracks count] > 1) {
+        [self.remoteViews[0] removeFromSuperview];
+        [self setupMainRemoteView];
+        int newTrack = 0;
+        if ([participant.videoTracks count] == 3 || [participant.videoTracks count] >= 5) {
+            newTrack = 0;
+        } else {
+            newTrack = (int)[participant.videoTracks count] - 1;
+        }
+        TVIRemoteVideoTrack *videoTrack3 = participant.remoteVideoTracks[newTrack].remoteTrack;
+        [videoTrack3 addRenderer:self.remoteViews[0]];
+    } else {
+        [self setupMainRemoteView];
+        [videoTrack addRenderer:self.remoteViews[0]];
+    }
+        
+}
+
+- (void)setAdditionalRemoteView:(TVIVideoTrack *)videoTrack
+             toParticipant:(TVIRemoteParticipant *)participant {
+    
+    if (self.remoteViews.count <= 4) {
+        [self logMessage: [NSString stringWithFormat:@"%lu remoteViews, add another.", self.remoteViews.count]];
+    } else {
+        [self logMessage: [NSString stringWithFormat:@"%lu remoteViews, do not add any more.", self.remoteViews.count]];
+        return;
+    }
+    
+    [self logMessage: [NSString stringWithFormat:@"%lu video tracks", [participant.videoTracks count]]];
+    
+    // Need to figure out which remoteView to work with.
+    
+    if ([participant.videoTracks count] > 1) {
+        [self.remoteViews[self.remoteViews.count - 1] removeFromSuperview];
+        [self setupAdditionalRemoteView];
+        int newTrack = 0;
+        if ([participant.videoTracks count] == 3 || [participant.videoTracks count] >= 5) {
+            newTrack = 0;
+        } else {
+            newTrack = (int)[participant.videoTracks count] - 1;
+        }
+        TVIRemoteVideoTrack *videoTrack3 = participant.remoteVideoTracks[newTrack].remoteTrack;
+        [videoTrack3 addRenderer:self.remoteViews[self.remoteViews.count - 1]];
+    } else {
+        [self setupAdditionalRemoteView];
+        [videoTrack addRenderer:self.remoteViews[self.remoteViews.count - 1]];
+    }
+}
+
+
+- (void) removeRemoteParticipantVideo:(TVIVideoTrack *)videoTrack
+                        toParticipant:(TVIRemoteParticipant *)participant {
+    for (TVIRemoteParticipant *remoteParticipant in self.remoteParticipants) {
+        if (remoteParticipant == participant) {
+            [self.remoteParticipants removeObject:remoteParticipant];
+        }
+    }
+    
+    [self logMessage: [NSString stringWithFormat:@"%lu video tracks", [participant.videoTracks count]]];
+    
+    if (self.remoteParticipants.count == 0) {
+        [videoTrack removeRenderer:self.remoteViews[0]];
+        [self.remoteViews[0] removeFromSuperview];
+    }
+}
 #pragma mark - TVIRoomDelegate
 
 - (void) onDisconnect {
@@ -302,14 +436,18 @@ NSString *const UNMUTED = @"UNMUTED";
 #pragma mark - TVIRoomDelegate
 
 - (void)didConnectToRoom:(TVIRoom *)room {
-    // At the moment, this example only supports rendering one Participant at a time.
     [self logMessage:[NSString stringWithFormat:@"Connected to room %@ as %@", room.name, room.localParticipant.identity]];
     [[TwilioVideoManager getInstance] publishEvent: CONNECTED];
-    
-    if (room.remoteParticipants.count > 0) {
-        self.remoteParticipant = room.remoteParticipants[0];
-        self.remoteParticipant.delegate = self;
+    [self logMessage:[NSString stringWithFormat:@"Connected to room with %lu remote participants", room.remoteParticipants.count]];
+    for (TVIRemoteParticipant *participant in room.remoteParticipants) {
+        participant.delegate = self;
+        [self.remoteParticipants addObject:participant];
     }
+    
+//    if (room.remoteParticipants.count > 0) {
+//        self.remoteParticipant = room.remoteParticipants[0];
+//        self.remoteParticipant.delegate = self;
+//    }
 }
 
 - (void)room:(TVIRoom *)room didDisconnectWithError:(nullable NSError *)error {
@@ -339,14 +477,19 @@ NSString *const UNMUTED = @"UNMUTED";
 }
 
 - (void)room:(TVIRoom *)room participantDidConnect:(TVIRemoteParticipant *)participant {
-    if (!self.remoteParticipant) {
-        self.remoteParticipant = participant;
-        self.remoteParticipant.delegate = self;
-    }
-    [self logMessage:[NSString stringWithFormat:@"Participant %@ connected with %lu audio and %lu video tracks",
-                      participant.identity,
-                      (unsigned long)[participant.audioTracks count],
-                      (unsigned long)[participant.videoTracks count]]];
+    [self logMessage:[NSString stringWithFormat:@"Participant %@ connected with %lu audio and %lu video tracks. %lu remote participants in room. %lu remote participants locally (self).",
+    participant.identity,
+    (unsigned long)[participant.audioTracks count],
+    (unsigned long)[participant.videoTracks count],
+    room.remoteParticipants.count,
+    self.remoteParticipants.count]];
+    if (!self.remoteParticipants) self.remoteParticipants = [[NSMutableArray alloc] init];
+    participant.delegate = self;
+    [self.remoteParticipants addObject:participant];
+//    if (!self.remoteParticipant) {
+//        self.remoteParticipant = participant;
+//        self.remoteParticipant.delegate = self;
+//    }
     [[TwilioVideoManager getInstance] publishEvent: PARTICIPANT_CONNECTED];
 }
 
@@ -402,34 +545,12 @@ NSString *const UNMUTED = @"UNMUTED";
     
     // We are subscribed to the remote Participant's audio Track. We will start receiving the
     // remote Participant's video frames now.
-    
+    [self logMessage:[NSString stringWithFormat:@"%lu remote participants when subscribing to video track for Participant %@", self.remoteParticipants.count, participant.identity]];
     [self logMessage:[NSString stringWithFormat:@"Subscribed to %@ video track for Participant %@",
                       publication.trackName, participant.identity]];
     [[TwilioVideoManager getInstance] publishEvent: VIDEO_TRACK_ADDED];
 
-    if (self.remoteParticipant == participant) {
-        [self logMessage: [NSString stringWithFormat:@"%lu video tracks", [self.remoteParticipant.videoTracks count]]];
-        
-        if ([self.remoteParticipant.videoTracks count] > 1) {
-            [self.remoteView removeFromSuperview];
-            [self setupRemoteView];
-//            TVIRemoteVideoTrack *videoTrack2 = self.remoteParticipant.remoteVideoTracks[0].remoteTrack;
-//            [videoTrack2 removeRenderer:self.remoteView];
-//            unsigned long newTrack = [self.remoteParticipant.videoTracks count] % 2;
-            int newTrack = 0;
-            if ([self.remoteParticipant.videoTracks count] == 3 || [self.remoteParticipant.videoTracks count] >= 5) {
-                newTrack = 0;
-            } else {
-                newTrack = [self.remoteParticipant.videoTracks count] - 1;
-            }
-            TVIRemoteVideoTrack *videoTrack3 = self.remoteParticipant.remoteVideoTracks[newTrack].remoteTrack;
-            //TVIRemoteVideoTrack *videoTrack3 = self.remoteParticipant.remoteVideoTracks[0].remoteTrack;
-            [videoTrack3 addRenderer:self.remoteView];
-        } else {
-            [self setupRemoteView];
-            [videoTrack addRenderer:self.remoteView];
-        }
-    }
+    [self addRemoteVideoTrack:videoTrack toParticipant:participant];
 }
 
 - (void)unsubscribedFromVideoTrack:(TVIRemoteVideoTrack *)videoTrack
@@ -442,11 +563,7 @@ NSString *const UNMUTED = @"UNMUTED";
     [self logMessage:[NSString stringWithFormat:@"Unsubscribed from %@ video track for Participant %@",
                       publication.trackName, participant.identity]];
     [[TwilioVideoManager getInstance] publishEvent: VIDEO_TRACK_REMOVED];
-    [self logMessage: [NSString stringWithFormat:@"%lu video tracks", [self.remoteParticipant.videoTracks count]]];
-    if (self.remoteParticipant == participant) {
-        [videoTrack removeRenderer:self.remoteView];
-        [self.remoteView removeFromSuperview];
-    }
+    [self removeRemoteParticipantVideo:videoTrack toParticipant:participant];
 }
 
 - (void)subscribedToAudioTrack:(TVIRemoteAudioTrack *)audioTrack
