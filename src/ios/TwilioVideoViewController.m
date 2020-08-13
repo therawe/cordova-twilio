@@ -30,8 +30,9 @@ NSString *const UNMUTED = @"UNMUTED";
     [[TwilioVideoManager getInstance] publishEvent: OPENED];
     [self.navigationController setNavigationBarHidden:YES animated:NO];
     
-    [self logMessage:[NSString stringWithFormat:@"TwilioVideo v%@", [TwilioVideo version]]];
+    [self logMessage:[NSString stringWithFormat:@"TwilioVideo v%ld", (long)[TwilioVideoSDK version]]];
     
+//    [TwilioVideoSDK setLogLevel:TVILogLevelAll];
     // Configure access token for testing. Create one manually in the console
     // at https://www.twilio.com/console/video/runtime/testing-tools
     self.accessToken = @"TWILIO_ACCESS_TOKEN";
@@ -112,40 +113,95 @@ NSString *const UNMUTED = @"UNMUTED";
 }
 
 - (void)startPreview {
-    // TVICameraCapturer is not supported with the Simulator.
+    // TVICameraSource is not supported with the Simulator.
     if ([self isSimulator]) {
         [self.previewView removeFromSuperview];
         return;
     }
-    
-    self.camera = [[TVICameraCapturer alloc] initWithSource:TVICameraCaptureSourceFrontCamera delegate:self];
-    self.localVideoTrack = [TVILocalVideoTrack trackWithCapturer:self.camera
-                                                         enabled:YES
-                                                     constraints:nil
-                                                            name:@"Camera"];
-    if (!self.localVideoTrack) {
-        [self logMessage:@"Failed to add video track"];
-    } else {
+
+    AVCaptureDevice *frontCamera = [TVICameraSource captureDeviceForPosition:AVCaptureDevicePositionFront];
+    AVCaptureDevice *backCamera = [TVICameraSource captureDeviceForPosition:AVCaptureDevicePositionBack];
+
+    if (frontCamera != nil || backCamera != nil) {
+        self.camera = [[TVICameraSource alloc] initWithDelegate:self];
+        self.localVideoTrack = [TVILocalVideoTrack trackWithSource:self.camera
+                                                           enabled:YES
+                                                              name:@"Camera"];
         // Add renderer to video track for local preview
         [self.localVideoTrack addRenderer:self.previewView];
-        
         [self logMessage:@"Video track created"];
-        
-        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
-                                                                              action:@selector(flipCamera)];
-        
-        self.videoButton.hidden = NO;
-        self.cameraSwitchButton.hidden = NO;
-        [self.previewView addGestureRecognizer:tap];
+
+        if (frontCamera != nil && backCamera != nil) {
+            UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
+                                                                                  action:@selector(flipCamera)];
+            [self.previewView addGestureRecognizer:tap];
+        }
+
+        [self.camera startCaptureWithDevice:frontCamera != nil ? frontCamera : backCamera
+                                 completion:^(AVCaptureDevice *device, TVIVideoFormat *format, NSError *error) {
+                                     if (error != nil) {
+                                         [self logMessage:[NSString stringWithFormat:@"Start capture failed with error.\ncode = %lu error = %@", error.code, error.localizedDescription]];
+                                     } else {
+                                         self.previewView.mirror = (device.position == AVCaptureDevicePositionFront);
+                                     }
+                                 }];
+    } else {
+        [self logMessage:@"No front or back capture device found!"];
     }
+    
+    // The following code is depecrated from the 2.5.6 upgrade to 3.6 - leaving just in case something is
+    // needed from it.
+    // TVICameraCapturer is not supported with the Simulator.
+//    if ([self isSimulator]) {
+//        [self.previewView removeFromSuperview];
+//        return;
+//    }
+//
+//    self.camera = [[TVICameraCapturer alloc] initWithSource:TVICameraCaptureSourceFrontCamera delegate:self];
+//    self.localVideoTrack = [TVILocalVideoTrack trackWithCapturer:self.camera
+//                                                         enabled:YES
+//                                                     constraints:nil
+//                                                            name:@"Camera"];
+//    if (!self.localVideoTrack) {
+//        [self logMessage:@"Failed to add video track"];
+//    } else {
+//        // Add renderer to video track for local preview
+//        [self.localVideoTrack addRenderer:self.previewView];
+//
+//        [self logMessage:@"Video track created"];
+//
+//        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self
+//                                                                              action:@selector(flipCamera)];
+//
+//        self.videoButton.hidden = NO;
+//        self.cameraSwitchButton.hidden = NO;
+//        [self.previewView addGestureRecognizer:tap];
+//    }
 }
 
 - (void)flipCamera {
-    if (self.camera.source == TVICameraCaptureSourceFrontCamera) {
-        [self.camera selectSource:TVICameraCaptureSourceBackCameraWide];
+    AVCaptureDevice *newDevice = nil;
+
+    if (self.camera.device.position == AVCaptureDevicePositionFront) {
+        newDevice = [TVICameraSource captureDeviceForPosition:AVCaptureDevicePositionBack];
     } else {
-        [self.camera selectSource:TVICameraCaptureSourceFrontCamera];
+        newDevice = [TVICameraSource captureDeviceForPosition:AVCaptureDevicePositionFront];
     }
+
+    if (newDevice != nil) {
+        [self.camera selectCaptureDevice:newDevice completion:^(AVCaptureDevice *device, TVIVideoFormat *format, NSError *error) {
+            if (error != nil) {
+                [self logMessage:[NSString stringWithFormat:@"Error selecting capture device.\ncode = %lu error = %@", error.code, error.localizedDescription]];
+            } else {
+                self.previewView.mirror = (device.position == AVCaptureDevicePositionFront);
+            }
+        }];
+    }
+//    if (self.camera.source == TVICameraCaptureSourceFrontCamera) {
+//        [self.camera selectSource:TVICameraCaptureSourceBackCameraWide];
+//    } else {
+//        [self.camera selectSource:TVICameraCaptureSourceFrontCamera];
+//    }
 }
 
 - (void)prepareLocalMedia {
@@ -187,7 +243,7 @@ NSString *const UNMUTED = @"UNMUTED";
                                                                       }];
     
     // Connect to the Room using the options we provided.
-    self.room = [TwilioVideo connectWithOptions:connectOptions delegate:self];
+    self.room = [TwilioVideoSDK connectWithOptions:connectOptions delegate:self];
     
     [self logMessage:@"Attempting to connect to room"];
 }
@@ -239,7 +295,7 @@ NSString *const UNMUTED = @"UNMUTED";
     
 }
 
-- (void)setupAdditionalRemoteView {
+- (void)setupAdditionalRemoteView:(unsigned long) newRemoteViewIndex {
 //    int height = 160;
 //    int width = 120;
     // Creating `TVIVideoView` programmatically
@@ -249,12 +305,12 @@ NSString *const UNMUTED = @"UNMUTED";
     // UIViewContentModeScaleAspectFit is the default mode when you create `TVIVideoView` programmatically.
     remoteView.contentMode = UIViewContentModeScaleAspectFill;
 
-    [self.view insertSubview:remoteView atIndex:0];
+    [self.view insertSubview:remoteView atIndex:1];
 //    self.remoteView = remoteView;
     [self.remoteViews addObject:remoteView];
-    unsigned long newRemoteViewIndex = self.remoteViews.count - 1;
-
-    unsigned long nextY = 170 * (self.remoteViews.count);
+    
+    unsigned long nextY = 170 * (newRemoteViewIndex - 1);
+    nextY += 200;
     [self logMessage:[NSString stringWithFormat:@"%lu: newRemoteViewIndex", newRemoteViewIndex]];
     [self logMessage:[NSString stringWithFormat:@"%lu: nextY", nextY]];
     NSLayoutConstraint *rightX = [NSLayoutConstraint constraintWithItem:self.remoteViews[newRemoteViewIndex]
@@ -263,7 +319,7 @@ NSString *const UNMUTED = @"UNMUTED";
                                                                  toItem:self.view
                                                                attribute:NSLayoutAttributeRight
                                                               multiplier:1
-                                                                constant:0];
+                                                                constant:-35];
     [self.view addConstraint:rightX];
     NSLayoutConstraint *topY = [NSLayoutConstraint constraintWithItem:self.remoteViews[newRemoteViewIndex]
                                                                 attribute:NSLayoutAttributeTop
@@ -297,17 +353,10 @@ NSString *const UNMUTED = @"UNMUTED";
     [UIApplication sharedApplication].idleTimerDisabled = inRoom;
 }
 
-- (void)cleanupRemoteParticipant {
-    if (self.remoteParticipant) {
-        if ([self.remoteParticipant.videoTracks count] > 0) {
-            TVIRemoteVideoTrack *videoTrack = self.remoteParticipant.remoteVideoTracks[0].remoteTrack;
-            [videoTrack removeRenderer:self.remoteViews[0]];
-            [self.remoteViews[0] removeFromSuperview];
-//            [videoTrack removeRenderer:self.remoteView];
-//            [self.remoteView removeFromSuperview];
-        }
-        self.remoteParticipant = nil;
-    }
+- (void)cleanupRemoteParticipants {
+    [self clearAllRemoteViews];
+    [self.remoteParticipants removeAllObjects];
+    [self.remoteViewsParticipants removeAllObjects];
 }
 
 - (void)logMessage:(NSString *)msg {
@@ -348,6 +397,7 @@ NSString *const UNMUTED = @"UNMUTED";
                toParticipant:(TVIRemoteParticipant *)participant {
     [self logMessage:[NSString stringWithFormat:@"%lu remote participants", self.remoteParticipants.count]];
     if (!self.remoteViews) self.remoteViews = [[NSMutableArray alloc] init];
+    if (!self.remoteViewsParticipants) self.remoteViewsParticipants = [[NSMutableArray alloc] init];
     if (self.remoteParticipants.count == 1) {
         [self setMainRemoteView:videoTrack toParticipant:participant];
     } else {
@@ -364,18 +414,19 @@ NSString *const UNMUTED = @"UNMUTED";
         [self.remoteViews[0] removeFromSuperview];
         [self setupMainRemoteView];
         int newTrack = 0;
-        if ([participant.videoTracks count] == 3 || [participant.videoTracks count] >= 5) {
+        if ([participant.remoteVideoTracks count] == 3 || [participant.remoteVideoTracks count] >= 5) {
             newTrack = 0;
         } else {
-            newTrack = (int)[participant.videoTracks count] - 1;
+            newTrack = (int)[participant.remoteVideoTracks count] - 1;
         }
         TVIRemoteVideoTrack *videoTrack3 = participant.remoteVideoTracks[newTrack].remoteTrack;
         [videoTrack3 addRenderer:self.remoteViews[0]];
+        self.remoteViewsParticipants[0] = participant;
     } else {
         [self setupMainRemoteView];
         [videoTrack addRenderer:self.remoteViews[0]];
+        self.remoteViewsParticipants[0] = participant;
     }
-        
 }
 
 - (void)setAdditionalRemoteView:(TVIVideoTrack *)videoTrack
@@ -391,39 +442,74 @@ NSString *const UNMUTED = @"UNMUTED";
     [self logMessage: [NSString stringWithFormat:@"%lu video tracks", [participant.videoTracks count]]];
     
     // Need to figure out which remoteView to work with.
-    
+    unsigned long newRemoteViewIndex = self.remoteViews.count;
+    [self logMessage: [NSString stringWithFormat:@"%lu - newRemoteViewIndex.", newRemoteViewIndex]];
+    [self logMessage: [NSString stringWithFormat:@"%lu - remoteViewsParticipants.", self.remoteViewsParticipants.count]];
     if ([participant.videoTracks count] > 1) {
-        [self.remoteViews[self.remoteViews.count - 1] removeFromSuperview];
-        [self setupAdditionalRemoteView];
+        [self.remoteViews[newRemoteViewIndex] removeFromSuperview];
+        [self setupAdditionalRemoteView:newRemoteViewIndex];
         int newTrack = 0;
-        if ([participant.videoTracks count] == 3 || [participant.videoTracks count] >= 5) {
+        if ([participant.remoteVideoTracks count] == 3 || [participant.remoteVideoTracks count] >= 5) {
             newTrack = 0;
         } else {
-            newTrack = (int)[participant.videoTracks count] - 1;
+            newTrack = (int)[participant.remoteVideoTracks count] - 1;
         }
         TVIRemoteVideoTrack *videoTrack3 = participant.remoteVideoTracks[newTrack].remoteTrack;
-        [videoTrack3 addRenderer:self.remoteViews[self.remoteViews.count - 1]];
+        [videoTrack3 addRenderer:self.remoteViews[newRemoteViewIndex]];
+        self.remoteViewsParticipants[newRemoteViewIndex] = participant;
     } else {
-        [self setupAdditionalRemoteView];
-        [videoTrack addRenderer:self.remoteViews[self.remoteViews.count - 1]];
+        [self setupAdditionalRemoteView:newRemoteViewIndex];
+        [videoTrack addRenderer:self.remoteViews[newRemoteViewIndex]];
+        self.remoteViewsParticipants[newRemoteViewIndex] = participant;
     }
 }
 
-
-- (void) removeRemoteParticipantVideo:(TVIVideoTrack *)videoTrack
-                        toParticipant:(TVIRemoteParticipant *)participant {
-    for (TVIRemoteParticipant *remoteParticipant in self.remoteParticipants) {
-        if (remoteParticipant == participant) {
-            [self.remoteParticipants removeObject:remoteParticipant];
+- (void) removeRemoteParticipant:(TVIRemoteParticipant *)participant {
+    int remoteViewIndex = 0;
+    bool foundParticipant = false;
+    for (TVIRemoteParticipant *remoteViewsParticipant in self.remoteViewsParticipants) {
+        if (remoteViewsParticipant == participant) {
+            foundParticipant = true;
+            break;
         }
+        remoteViewIndex++;
     }
     
-    [self logMessage: [NSString stringWithFormat:@"%lu video tracks", [participant.videoTracks count]]];
-    
-    if (self.remoteParticipants.count == 0) {
-        [videoTrack removeRenderer:self.remoteViews[0]];
-        [self.remoteViews[0] removeFromSuperview];
+    if (foundParticipant == true) {
+        [self.remoteViewsParticipants removeObject:participant];
+        [self.remoteParticipants removeObject:participant];
+        [self logMessage:[NSString stringWithFormat:@"Removed %@ - %lu participants left", participant.identity, (unsigned long)[self.remoteParticipants count]]];
+        
+        [self fixRemoteVideos];
     }
+}
+
+- (void) clearAllRemoteViews {
+    int i = 0;
+    for (TVIRemoteParticipant *remoteViewsParticipant in self.remoteViewsParticipants) {
+        unsigned long videoTrackIndex = [remoteViewsParticipant.remoteVideoTracks count] - 1;
+        TVIRemoteVideoTrack *videoTrack = remoteViewsParticipant.remoteVideoTracks[videoTrackIndex].remoteTrack;
+        [videoTrack removeRenderer:self.remoteViews[i]];
+        i++;
+    }
+}
+- (void) fixRemoteVideos {
+    [self logMessage:[NSString stringWithFormat:@"%lu remoteViews", (unsigned long)[self.remoteViews count]]];
+    // Iterate over the remoteViewsParticipants and clear out all remoteViews
+    [self clearAllRemoteViews];
+//    [self logMessage:[NSString stringWithFormat:@"%lu remoteViews after clearing all", [self.remoteViews count]]];
+    // Iterate over the remoteParticipants and set the first 5 participants to remoteViews
+    int i = 0;
+    for (TVIRemoteParticipant *remoteParticipant in self.remoteParticipants) {
+        self.remoteViewsParticipants[i] = remoteParticipant;
+        [self logMessage:[NSString stringWithFormat:@"Participant %@ has %lu remote video tracks", remoteParticipant.identity, remoteParticipant.remoteVideoTracks.count]];
+        unsigned long nextVideoTrackIndex = [remoteParticipant.remoteVideoTracks count] - 1;
+        TVIRemoteVideoTrack *videoTrack = remoteParticipant.remoteVideoTracks[nextVideoTrackIndex].remoteTrack;
+        [videoTrack addRenderer:self.remoteViews[i]];
+        [self logMessage:[NSString stringWithFormat:@"Participant %@ is at index %i", remoteParticipant.identity, i]];
+        i++;
+    }
+    [self logMessage:[NSString stringWithFormat:@"%lu remoteViews after reset", [self.remoteViews count]]];
 }
 #pragma mark - TVIRoomDelegate
 
@@ -431,6 +517,7 @@ NSString *const UNMUTED = @"UNMUTED";
     if (self.room != NULL) {
         [self.room disconnect];
     }
+    [self cleanupRemoteParticipants];
 }
 
 #pragma mark - TVIRoomDelegate
@@ -453,7 +540,7 @@ NSString *const UNMUTED = @"UNMUTED";
 - (void)room:(TVIRoom *)room didDisconnectWithError:(nullable NSError *)error {
     [self logMessage:[NSString stringWithFormat:@"Disconnected from room %@, error = %@", room.name, error]];
     
-    [self cleanupRemoteParticipant];
+    [self cleanupRemoteParticipants];
     self.room = nil;
     
     [self showRoomUI:NO];
@@ -477,15 +564,15 @@ NSString *const UNMUTED = @"UNMUTED";
 }
 
 - (void)room:(TVIRoom *)room participantDidConnect:(TVIRemoteParticipant *)participant {
+    if (!self.remoteParticipants) self.remoteParticipants = [[NSMutableArray alloc] init];
+    participant.delegate = self;
+    [self.remoteParticipants addObject:participant];
     [self logMessage:[NSString stringWithFormat:@"Participant %@ connected with %lu audio and %lu video tracks. %lu remote participants in room. %lu remote participants locally (self).",
     participant.identity,
     (unsigned long)[participant.audioTracks count],
     (unsigned long)[participant.videoTracks count],
     room.remoteParticipants.count,
     self.remoteParticipants.count]];
-    if (!self.remoteParticipants) self.remoteParticipants = [[NSMutableArray alloc] init];
-    participant.delegate = self;
-    [self.remoteParticipants addObject:participant];
 //    if (!self.remoteParticipant) {
 //        self.remoteParticipant = participant;
 //        self.remoteParticipant.delegate = self;
@@ -494,12 +581,12 @@ NSString *const UNMUTED = @"UNMUTED";
 }
 
 - (void)room:(TVIRoom *)room participantDidDisconnect:(TVIRemoteParticipant *)participant {
-    if (self.remoteParticipant == participant) {
-        [self cleanupRemoteParticipant];
-    }
+//    [self cleanupRemoteParticipant];
+    [self removeRemoteParticipant:participant];
     [self logMessage:[NSString stringWithFormat:@"Room %@ participant %@ disconnected", room.name, participant.identity]];
     [[TwilioVideoManager getInstance] publishEvent: PARTICIPANT_DISCONNECTED];
 }
+
 
 #pragma mark - TVIRemoteParticipantDelegate
 
@@ -539,7 +626,7 @@ NSString *const UNMUTED = @"UNMUTED";
                       participant.identity, publication.trackName]];
 }
 
-- (void)subscribedToVideoTrack:(TVIRemoteVideoTrack *)videoTrack
+- (void)didSubscribeToVideoTrack:(TVIRemoteVideoTrack *)videoTrack
                    publication:(TVIRemoteVideoTrackPublication *)publication
                 forParticipant:(TVIRemoteParticipant *)participant {
     
@@ -563,7 +650,7 @@ NSString *const UNMUTED = @"UNMUTED";
     [self logMessage:[NSString stringWithFormat:@"Unsubscribed from %@ video track for Participant %@",
                       publication.trackName, participant.identity]];
     [[TwilioVideoManager getInstance] publishEvent: VIDEO_TRACK_REMOVED];
-    [self removeRemoteParticipantVideo:videoTrack toParticipant:participant];
+    [self removeRemoteParticipant:participant];
 }
 
 - (void)subscribedToAudioTrack:(TVIRemoteAudioTrack *)audioTrack
@@ -635,10 +722,16 @@ NSString *const UNMUTED = @"UNMUTED";
     [self.view setNeedsLayout];
 }
 
-#pragma mark - TVICameraCapturerDelegate
+#pragma mark - TVICameraSourceDelegate
 
-- (void)cameraCapturer:(TVICameraCapturer *)capturer didStartWithSource:(TVICameraCaptureSource)source {
-    self.previewView.mirror = (source == TVICameraCaptureSourceFrontCamera);
+- (void)cameraSource:(TVICameraSource *)source didFailWithError:(NSError *)error {
+    [self logMessage:[NSString stringWithFormat:@"Capture failed with error.\ncode = %lu error = %@", error.code, error.localizedDescription]];
 }
+
+//#pragma mark - TVICameraCapturerDelegate
+//
+//- (void)cameraCapturer:(TVICameraCapturer *)capturer didStartWithSource:(TVICameraCaptureSource)source {
+//    self.previewView.mirror = (source == TVICameraCaptureSourceFrontCamera);
+//}
 
 @end
