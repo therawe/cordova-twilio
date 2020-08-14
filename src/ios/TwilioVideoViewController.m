@@ -319,7 +319,7 @@ NSString *const UNMUTED = @"UNMUTED";
                                                                  toItem:self.view
                                                                attribute:NSLayoutAttributeRight
                                                               multiplier:1
-                                                                constant:-35];
+                                                                constant:-15];
     [self.view addConstraint:rightX];
     NSLayoutConstraint *topY = [NSLayoutConstraint constraintWithItem:self.remoteViews[newRemoteViewIndex]
                                                                 attribute:NSLayoutAttributeTop
@@ -408,9 +408,10 @@ NSString *const UNMUTED = @"UNMUTED";
 - (void)setMainRemoteView:(TVIVideoTrack *)videoTrack
              toParticipant:(TVIRemoteParticipant *)participant {
     
-    [self logMessage: [NSString stringWithFormat:@"%lu video tracks", [participant.videoTracks count]]];
+    [self logMessage: [NSString stringWithFormat:@"%lu - remoteViewsParticipants.", self.remoteViewsParticipants.count]];
+    [self logMessage: [NSString stringWithFormat:@"%lu - remoteVideoTracks for participant %@.", participant.remoteVideoTracks.count, participant.identity]];
     
-    if ([participant.videoTracks count] > 1) {
+    if ([participant.remoteVideoTracks count] > 1) {
         [self.remoteViews[0] removeFromSuperview];
         [self setupMainRemoteView];
         int newTrack = 0;
@@ -445,7 +446,8 @@ NSString *const UNMUTED = @"UNMUTED";
     unsigned long newRemoteViewIndex = self.remoteViews.count;
     [self logMessage: [NSString stringWithFormat:@"%lu - newRemoteViewIndex.", newRemoteViewIndex]];
     [self logMessage: [NSString stringWithFormat:@"%lu - remoteViewsParticipants.", self.remoteViewsParticipants.count]];
-    if ([participant.videoTracks count] > 1) {
+    [self logMessage: [NSString stringWithFormat:@"%lu - remoteVideoTracks for participant %@.", participant.remoteVideoTracks.count, participant.identity]];
+    if ([participant.remoteVideoTracks count] > 1) {
         [self.remoteViews[newRemoteViewIndex] removeFromSuperview];
         [self setupAdditionalRemoteView:newRemoteViewIndex];
         int newTrack = 0;
@@ -509,6 +511,14 @@ NSString *const UNMUTED = @"UNMUTED";
         [self logMessage:[NSString stringWithFormat:@"Participant %@ is at index %i", remoteParticipant.identity, i]];
         i++;
     }
+    if (i < 5) {
+        [self logMessage:[NSString stringWithFormat:@"%lu remoteViews with %lu remoteViewsParticipants", self.remoteViews.count, self.remoteViewsParticipants.count]];
+        for (int j = i; j < 5; j++) {
+            [self logMessage:[NSString stringWithFormat:@"Remove remoteView %i", j]];
+            [self.remoteViews[i] removeFromSuperview];
+        }
+    }
+    
     [self logMessage:[NSString stringWithFormat:@"%lu remoteViews after reset", [self.remoteViews count]]];
 }
 #pragma mark - TVIRoomDelegate
