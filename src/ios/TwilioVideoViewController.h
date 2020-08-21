@@ -21,6 +21,7 @@
 @property (nonatomic, weak) TVIVideoView *remoteView;
 @property NSMutableArray<TVIVideoView *> *remoteViews;
 @property (nonatomic, strong) TVIRoom *room;
+@property (nonatomic, weak) TVIVideoTrack *currentMainVideoTrack;
 @property NSMutableArray <TVIRemoteParticipant *> *remoteViewsParticipants;
 
 #pragma mark UI Element Outlets and handles

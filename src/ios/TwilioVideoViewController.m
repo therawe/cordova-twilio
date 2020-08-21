@@ -398,10 +398,14 @@ NSString *const UNMUTED = @"UNMUTED";
     [self logMessage:[NSString stringWithFormat:@"%lu remote participants", self.remoteParticipants.count]];
     if (!self.remoteViews) self.remoteViews = [[NSMutableArray alloc] init];
     if (!self.remoteViewsParticipants) self.remoteViewsParticipants = [[NSMutableArray alloc] init];
-    if (self.remoteParticipants.count == 1) {
-        [self setMainRemoteView:videoTrack toParticipant:participant];
+    if (participant.remoteVideoTracks.count > 1) {
+        [self updateMainRemoteView:participant];
     } else {
-        [self setAdditionalRemoteView:videoTrack toParticipant:participant];
+        if (self.remoteParticipants.count == 1) {
+            [self setMainRemoteView:videoTrack toParticipant:participant];
+        } else {
+            [self setAdditionalRemoteView:videoTrack toParticipant:participant];
+        }
     }
 }
 
@@ -412,22 +416,34 @@ NSString *const UNMUTED = @"UNMUTED";
     [self logMessage: [NSString stringWithFormat:@"%lu - remoteVideoTracks for participant %@.", participant.remoteVideoTracks.count, participant.identity]];
     
     if ([participant.remoteVideoTracks count] > 1) {
-        [self.remoteViews[0] removeFromSuperview];
-        [self setupMainRemoteView];
-        int newTrack = 0;
-        if ([participant.remoteVideoTracks count] == 3 || [participant.remoteVideoTracks count] >= 5) {
-            newTrack = 0;
-        } else {
-            newTrack = (int)[participant.remoteVideoTracks count] - 1;
-        }
-        TVIRemoteVideoTrack *videoTrack3 = participant.remoteVideoTracks[newTrack].remoteTrack;
-        [videoTrack3 addRenderer:self.remoteViews[0]];
+        int newTrackIndex = 0;
+        int oldTrackIndex = 0;
+        newTrackIndex = (int)[participant.remoteVideoTracks count] - 1;
+        oldTrackIndex = (int)[participant.remoteVideoTracks count] - 2;
+        TVIRemoteVideoTrack *videoTrack1 = participant.remoteVideoTracks[oldTrackIndex].remoteTrack;
+        TVIRemoteVideoTrack *videoTrack2 = participant.remoteVideoTracks[newTrackIndex].remoteTrack;
+        [videoTrack1 removeRenderer:self.remoteViews[0]];
+        [videoTrack2 addRenderer:self.remoteViews[0]];
         self.remoteViewsParticipants[0] = participant;
     } else {
         [self setupMainRemoteView];
         [videoTrack addRenderer:self.remoteViews[0]];
+        self.currentMainVideoTrack = videoTrack;
         self.remoteViewsParticipants[0] = participant;
     }
+}
+- (void)updateMainRemoteView:(TVIRemoteParticipant *)participant {
+    // get current videotrack from main view
+    TVIRemoteVideoTrack *videoTrack = participant.remoteVideoTracks[participant.remoteVideoTracks.count - 1].remoteTrack;
+    [self.currentMainVideoTrack removeRenderer:self.remoteViews[0]];
+    [videoTrack addRenderer:self.remoteViews[0]];
+    self.currentMainVideoTrack = videoTrack;
+    self.remoteViewsParticipants[0] = participant;
+    // is the current video track a screen share?
+//    if (self.remoteViewsParticipants.count < 5) {
+//        self.remoteViewsParticipants[self.remoteViewsParticipants.count - 1] = participant;
+//
+//    }
 }
 
 - (void)setAdditionalRemoteView:(TVIVideoTrack *)videoTrack
@@ -448,17 +464,15 @@ NSString *const UNMUTED = @"UNMUTED";
     [self logMessage: [NSString stringWithFormat:@"%lu - remoteViewsParticipants.", self.remoteViewsParticipants.count]];
     [self logMessage: [NSString stringWithFormat:@"%lu - remoteVideoTracks for participant %@.", participant.remoteVideoTracks.count, participant.identity]];
     if ([participant.remoteVideoTracks count] > 1) {
-        [self.remoteViews[newRemoteViewIndex] removeFromSuperview];
-        [self setupAdditionalRemoteView:newRemoteViewIndex];
-        int newTrack = 0;
-        if ([participant.remoteVideoTracks count] == 3 || [participant.remoteVideoTracks count] >= 5) {
-            newTrack = 0;
-        } else {
-            newTrack = (int)[participant.remoteVideoTracks count] - 1;
-        }
-        TVIRemoteVideoTrack *videoTrack3 = participant.remoteVideoTracks[newTrack].remoteTrack;
-        [videoTrack3 addRenderer:self.remoteViews[newRemoteViewIndex]];
-        self.remoteViewsParticipants[newRemoteViewIndex] = participant;
+        int newTrackIndex = 0;
+        int oldTrackIndex = 0;
+        newTrackIndex = (int)[participant.remoteVideoTracks count] - 1;
+        oldTrackIndex = (int)[participant.remoteVideoTracks count] - 2;
+        TVIRemoteVideoTrack *videoTrack1 = participant.remoteVideoTracks[oldTrackIndex].remoteTrack;
+        TVIRemoteVideoTrack *videoTrack2 = participant.remoteVideoTracks[newTrackIndex].remoteTrack;
+        [videoTrack1 removeRenderer:self.remoteViews[newRemoteViewIndex - 1]];
+        [videoTrack2 addRenderer:self.remoteViews[newRemoteViewIndex - 1]];
+        self.remoteViewsParticipants[newRemoteViewIndex - 1] = participant;
     } else {
         [self setupAdditionalRemoteView:newRemoteViewIndex];
         [videoTrack addRenderer:self.remoteViews[newRemoteViewIndex]];
