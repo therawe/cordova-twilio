@@ -11,6 +11,8 @@
 @property (nonatomic, strong) NSString *accessToken;
 @property (nonatomic, strong) TwilioVideoConfig *config;
 
+@property unsigned long numberActiveVideoTracks;
+
 #pragma mark Video SDK components
 
 @property (nonatomic, strong) TVICameraSource *camera;
@@ -19,10 +21,12 @@
 @property (nonatomic, strong) TVIRemoteParticipant *remoteParticipant;
 @property NSMutableArray<TVIRemoteParticipant *> *remoteParticipants;
 @property (nonatomic, weak) TVIVideoView *remoteView;
+@property (nonatomic, weak) TVIVideoView *mainRemoteView;
 @property NSMutableArray<TVIVideoView *> *remoteViews;
 @property (nonatomic, strong) TVIRoom *room;
 @property (nonatomic, weak) TVIVideoTrack *currentMainVideoTrack;
 @property NSMutableArray <TVIRemoteParticipant *> *remoteViewsParticipants;
+@property NSMutableArray <TVIVideoTrack *> *videoTracks;
 
 #pragma mark UI Element Outlets and handles
 
