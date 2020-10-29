@@ -41,9 +41,9 @@ NSString *const UNMUTED = @"UNMUTED";
     [self startPreview];
     
     [self.micButton setImage:[UIImage imageNamed:@"mute"] forState: UIControlStateNormal];
-    [self.micButton setImage:[UIImage imageNamed:@"mute"] forState: UIControlStateSelected];
+    [self.micButton setImage:[UIImage imageNamed:@"mute_slash"] forState: UIControlStateSelected];
     [self.videoButton setImage:[UIImage imageNamed:@"video_camera"] forState: UIControlStateNormal];
-    [self.videoButton setImage:[UIImage imageNamed:@"video_camera"] forState: UIControlStateSelected];
+    [self.videoButton setImage:[UIImage imageNamed:@"video_camera_slash"] forState: UIControlStateSelected];
     
     
     self.disconnectButton.backgroundColor = [UIColor clearColor];
