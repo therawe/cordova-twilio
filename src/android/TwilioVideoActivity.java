@@ -50,8 +50,6 @@ import org.json.JSONObject;
 import java.util.Collections;
 import java.util.List;
 
-import capacitor.android.plugins.R;
-
 public class TwilioVideoActivity extends AppCompatActivity implements CallActionObserver {
 
     /*
@@ -857,18 +855,15 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
                 if (localAudioTrack != null) {
                     boolean enable = !localAudioTrack.isEnabled();
                     localAudioTrack.enable(enable);
-                    // int icon = enable ?
-                      //       FAKE_R.getDrawable("ic_mic_green_24px") : FAKE_R.getDrawable("ic_mic_off_red_24px");
-                    // muteActionFab.setImageDrawable(ContextCompat.getDrawable(
-                           //  TwilioVideoActivity.this, icon));
 
-                    if(enable) {
-                               muteActionText.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_mic_green_24px, 0, 0);
-                               muteActionText.setText("Mute");
-                           } else {
-                               muteActionText.setCompoundDrawablesWithIntrinsicBounds(0,  R.drawable.ic_mute,0 , 0);
-                               muteActionText.setText("Unmute");
-                           }
+                    if (enable) {
+                        muteActionText.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_mic_green_24px, 0, 0);
+                        muteActionText.setText("Mute");
+                    } else {
+                        muteActionText.setCompoundDrawablesWithIntrinsicBounds(0,  R.drawable.ic_mute,0 , 0);
+                        muteActionText.setText("Unmute");
+                    }
+
                 }
             }
         };
