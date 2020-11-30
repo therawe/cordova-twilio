@@ -50,6 +50,8 @@ import org.json.JSONObject;
 import java.util.Collections;
 import java.util.List;
 
+import capacitor.android.plugins.R;
+
 public class TwilioVideoActivity extends AppCompatActivity implements CallActionObserver {
 
     /*
