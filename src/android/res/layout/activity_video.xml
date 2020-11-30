@@ -65,7 +65,7 @@
                         android:layout_height="wrap_content"
                         android:text="Mute"
                         android:textColor="#FFFFFF"
-                        android:drawableTop="@drawable/ic_mute"
+                        android:drawableTop="@drawable/ic_mic_green_24px"
                         android:drawablePadding="10dp"
                         android:textAlignment="center"
                         />
