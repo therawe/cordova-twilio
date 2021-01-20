@@ -51,7 +51,7 @@ NSString *const UNMUTED = @"UNMUTED";
     self.videoButton.backgroundColor = [UIColor clearColor];
     self.cameraSwitchButton.backgroundColor = [UIColor clearColor];
     
-    self.numberActiveVideoTracks = 5;
+    self.numberActiveVideoTracks = 15;
 }
 
 #pragma mark - Public
@@ -398,7 +398,7 @@ NSString *const UNMUTED = @"UNMUTED";
                   toParticipant:(TVIRemoteParticipant *)participant
                          action:(NSString *)action {
     // only setting views for up to 5 participants at a time
-    int activeVideoTracks = 5;
+    int activeVideoTracks = 15;
     
     // initialize our arrays if they don't already exist
     if (!self.remoteViews) self.remoteViews = [[NSMutableArray alloc] init];
@@ -463,22 +463,32 @@ NSString *const UNMUTED = @"UNMUTED";
 - (void) removeAllVideoTracks {
     [self logMessage: [NSString stringWithFormat:@"remove all remote views."]];
     int remoteViewIndex = 0;
+    int videoTrackIndex = 0;
     [self logMessage: [NSString stringWithFormat:@"%lu remote views", self.remoteViews.count]];
     [self logMessage: [NSString stringWithFormat:@"%lu video tracks", self.videoTracks.count]];
     for (TVIVideoView *remoteView in self.remoteViews) {
+        videoTrackIndex = 0;
+        for (TVIVideoTrack *videoTrack in self.videoTracks) {
+            [self.videoTracks[videoTrackIndex] removeRenderer:self.remoteViews[remoteViewIndex]];
+            videoTrackIndex++;
+        }
+        /*
         if (remoteViewIndex < self.videoTracks.count) {
             [self logMessage: [NSString stringWithFormat:@"remoteViewIndex: %i", remoteViewIndex]];
             if ([self.currentMainVideoTrack.name isEqual: @"screen"]) {
-                // we just started screenshare, so videoTrack[1] is currently at remoteViews[0];
+                // we have screenshare, so videoTrack[0] is currently at remoteViews[0];
                 if (remoteViewIndex > 0) {
                     [self.videoTracks[remoteViewIndex] removeRenderer:self.remoteViews[remoteViewIndex - 1]];
                 }
             } else {
-                // we just ended screenshare, so videoTrack[0] is currently at remoteViews[0];
+                // we dont' have screenshare, so videoTrack[0] is currently at mainRemoteView and
+                // videoTrack[1] is at remoteViews[0];
                 [self.videoTracks[remoteViewIndex] removeRenderer:self.remoteViews[remoteViewIndex]];
             }
         }
+         */
         remoteViewIndex++;
+         
     }
 }
 
@@ -493,25 +503,22 @@ NSString *const UNMUTED = @"UNMUTED";
         [self removeAllVideoTracks];
         [self logMessage: [NSString stringWithFormat:@"video tracks removed."]];
     }
-    
+
     if (![self.currentMainVideoTrack.name isEqual: @"screen"]) {
         [self clearMainRemoteView];
     }
-    
+
     [self logMessage: [NSString stringWithFormat:@"add video tracks."]];
     for (TVIVideoTrack *videoTrack in self.videoTracks) {
+        [self logMessage: [NSString stringWithFormat:@"track name: %@", videoTrack.name]];
         [self logMessage: [NSString stringWithFormat:@"remoteViewIndex: %lu", videoTrackIndex]];
         // which view do we need to send the videoTrack to?
         TVIVideoView *view = [self getTargetViewForAdd:&videoTrackIndex];
         if (view == self.mainRemoteView) {
             [self logMessage: [NSString stringWithFormat:@"send to mainRemoteView."]];
-        } else {
-            [self logMessage: [NSString stringWithFormat:@"send to sideView."]];
-        }
-        if (view == self.mainRemoteView) {
             [self updateMainRemoteView:videoTrack];
         } else {
-            [self logMessage: [NSString stringWithFormat:@"add remote view."]];
+            [self logMessage: [NSString stringWithFormat:@"send to sideView."]];
             [videoTrack addRenderer:view];
         }
         videoTrackIndex++;
@@ -551,6 +558,7 @@ NSString *const UNMUTED = @"UNMUTED";
 - (TVIVideoView *) getTargetSideView:(unsigned long *)videoTrackIndex {
     // if there is a screenshare in the main view, then self.videoTracks[0] should be in a side view.
     // if there is not a screenshare in the main view, then side view starts at self.videoTracks[1];
+
     if ([self.currentMainVideoTrack.name  isEqual: @"screen"]) {
         [self logMessage: [NSString stringWithFormat:@"we are doing screen share, so use remoteView"]];
         [self logMessage: [NSString stringWithFormat:@"send back remoteView %lu", *videoTrackIndex]];
