@@ -19,8 +19,11 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -47,6 +50,7 @@ import com.twilio.video.VideoView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -83,14 +87,20 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
     private LocalParticipant localParticipant;
     private RemoteParticipant remoteParticipant;
     private VideoTrack originalRemoteTrack;
+    private List<RemoteParticipant> remoteParticipants = new ArrayList<>();
+    private RemoteParticipant mainViewParticipant;
+
     /*
      * A VideoView receives frames from a local or remote video track and renders them
      * to an associated view.
      */
     private VideoView primaryVideoView;
     private VideoView thumbnailVideoView;
+    private List<VideoView> sideViews = new ArrayList<>();
+    private int numberActiveVideoTracks = 11;
 
-
+    private VideoTrack mainViewVideoTrack = null;
+    private VideoTrack newMainViewVideoTrack = null;
     /*
      * Android application UI elements
      */
@@ -364,6 +374,201 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
     }
 
     /*
+     * Build all of the side views (should ideally be refactored to be dynamically generated as needed)
+     */
+    private void prebuildSideViews() {
+        /*
+        FrameLayout vc = findViewById(FAKE_R.getId("video_container"));
+        for (int i=1; i<=numberActiveVideoTracks; i++) {
+            VideoView newView = new VideoView(this);
+            float sideViewHeight = convertDpToPixel(96, this);
+            float sideViewWidth = convertDpToPixel(96, this);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int) sideViewHeight,(int) sideViewWidth);
+            int newSideViewTop = (int) convertDpToPixel(16,this) + (i*((int) sideViewHeight + (int) convertDpToPixel(16,this)));
+
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            int screenHeight = displayMetrics.heightPixels;
+            int screenWidth = displayMetrics.widthPixels;
+            int viewLeft = (int) screenWidth - (int) sideViewWidth - (int) convertDpToPixel(16,this);
+            params.setMargins(viewLeft, newSideViewTop, (int) convertDpToPixel(16,this),  (int) convertDpToPixel(16,this));
+            newView.setLayoutParams(params);
+//            newView.setVisibility(View.VISIBLE);
+            newView.setVisibility(View.GONE);
+//            localVideoTrack.addRenderer(newView);
+//            newView.setBackgroundColor(Color.BLACK);
+            sideViews.add(newView);
+            vc.addView(newView);
+        }
+        */
+    }
+
+    /*
+     * Full video view cleanup - remove all renderers from all video tracks
+    */
+    private void removeAllVideoRenderers() {
+        // This is the nuclear option, would prefer something a bit more graceful
+        Log.d("remove renderers", "removing all video renderers");
+        for (RemoteParticipant participant:remoteParticipants) {
+            Log.d("loop over participants", "loop over participants");
+            if (participant.getRemoteVideoTracks().size() > 0) {
+                Log.d("participant information", participant.getRemoteVideoTracks().size()+" video tracks");
+                List<RemoteVideoTrackPublication> remoteVideoTrackPublications = participant.getRemoteVideoTracks();
+                for (RemoteVideoTrackPublication remotevideoTrackPublication : remoteVideoTrackPublications) {
+                    Log.d("loop over publications", "loop over publications");
+                    if (remotevideoTrackPublication.isTrackSubscribed()) {
+                        VideoTrack videoTrack = remotevideoTrackPublication.getRemoteVideoTrack();
+                        Log.d("videoTrack", videoTrack.getName());
+                        for (VideoView view : sideViews) {
+                            Log.d("remove side views", "remove side views");
+                            videoTrack.removeRenderer(view);
+                        }
+                    }
+                }
+            }
+        }
+        for (VideoView view: sideViews) {
+            Log.d("hide side views", "hide side views");
+            view.setVisibility(View.GONE);
+        }
+
+        Log.d("remove primary view", "remove primary view");
+        if (mainViewVideoTrack != null) {
+            mainViewVideoTrack.removeRenderer(primaryVideoView);
+            mainViewVideoTrack = null;
+            primaryVideoView.setBackgroundColor(Color.BLACK);
+//            primaryVideoView.setVisibility(View.GONE);
+        }
+    }
+
+    private void adjustSideViews() {
+        Log.i("code branch", "adjustSideViews");
+        Log.i("side views", "number side views: "+sideViews.size());
+        Log.i("side views", "number particpants: "+remoteParticipants.size());
+        if (sideViews.size() < remoteParticipants.size()) {
+            increaseSideViews();
+        }
+        if (sideViews.size() > remoteParticipants.size()) {
+            decreaseSideViews();
+        }
+    }
+
+    private void increaseSideViews() {
+        FrameLayout vc = findViewById(FAKE_R.getId("video_container"));
+        Log.i("side views", "number side views: "+sideViews.size());
+        Log.i("side views", "number particpants: "+remoteParticipants.size());
+        for (int i=sideViews.size()+1; i<=remoteParticipants.size(); i++) {
+            Log.i("side views", "new side view: "+i);
+            VideoView newView = new VideoView(this);
+            float sideViewHeight = convertDpToPixel(96, this);
+            float sideViewWidth = convertDpToPixel(96, this);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int) sideViewHeight,(int) sideViewWidth);
+            int newSideViewTop = (int) convertDpToPixel(16,this) + (i*((int) sideViewHeight + (int) convertDpToPixel(16,this)));
+
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            int screenHeight = displayMetrics.heightPixels;
+            int screenWidth = displayMetrics.widthPixels;
+            int viewLeft = (int) screenWidth - (int) sideViewWidth - (int) convertDpToPixel(16,this);
+            params.setMargins(viewLeft, newSideViewTop, (int) convertDpToPixel(16,this),  (int) convertDpToPixel(16,this));
+            newView.setLayoutParams(params);
+//            newView.setVisibility(View.VISIBLE);
+            newView.setVisibility(View.GONE);
+//            localVideoTrack.addRenderer(newView);
+//            newView.setBackgroundColor(Color.BLACK);
+            sideViews.add(newView);
+            vc.addView(newView);
+        }
+    }
+
+    private void decreaseSideViews() {
+        FrameLayout vc = findViewById(FAKE_R.getId("video_container"));
+        for (int i=sideViews.size(); i<=remoteParticipants.size(); i--) {
+            VideoView sideView = sideViews.get(i);
+            vc.removeView(sideView);
+        }
+    }
+
+    private void populateVideoViews() {
+        int i = 0;
+        VideoTrack lastParticipantVideoTrack = null;
+        int lastViewIndex = 0;
+        primaryVideoView.setMirror(false);
+        newMainViewVideoTrack = null;
+
+        for (RemoteParticipant participant: remoteParticipants) {
+            if (participant != mainViewParticipant) {
+                // get the track that is not named 'screen'
+                for (RemoteVideoTrackPublication remoteVideoTrackPublication: participant.getRemoteVideoTracks()) {
+                    /*
+                     * Only render video tracks that are subscribed to
+                     */
+                    if (remoteVideoTrackPublication.isTrackSubscribed()) {
+                        VideoTrack videoTrack = remoteVideoTrackPublication.getVideoTrack();
+                        Log.i("video track", "video track name: |"+videoTrack.getName()+"|");
+                        Log.i("side view", "Side view: "+i);
+                        if (videoTrack.getName().equals("screen")) {
+                            Log.i("screen", "send screen to main view");
+                            newMainViewVideoTrack = videoTrack;
+                        } else {
+                            Log.i("screen", "not screen share, send to side view");
+                            videoTrack.addRenderer(sideViews.get(i));
+                            sideViews.get(i).setVisibility(View.VISIBLE);
+                            if (videoTrack.isEnabled()){
+                                sideViews.get(i).setBackgroundColor(Color.TRANSPARENT);
+                            } else {
+                                sideViews.get(i).setBackgroundColor(Color.BLACK);
+                            }
+                            lastParticipantVideoTrack = videoTrack;
+                        }
+                        // Inside here, you could also check to see if somebody is the dominant speaker (after upgrading to a library that supports it)
+                    }
+                }
+            }
+            lastViewIndex = i;
+            i++;
+        }
+
+        // For simplicity's sake, if we did not set the mainViewVideoTrack, then just pull the video track
+        // from the last remoteParticipant and use it. You could also pop the first participant off and
+        // do the same thing, but this seemed easier.
+
+        if (newMainViewVideoTrack == null && lastParticipantVideoTrack != null) {
+            Log.d("last participant", "video track name: "+ lastParticipantVideoTrack.getName());
+            Log.d("lastviewindex", "last view index: "+lastViewIndex);
+            lastParticipantVideoTrack.removeRenderer(sideViews.get(lastViewIndex));
+            sideViews.get(lastViewIndex).setVisibility(View.GONE);
+            newMainViewVideoTrack = lastParticipantVideoTrack;
+            Log.d("mainViewVideoTrack", "set video track name= "+ newMainViewVideoTrack.getName());
+        }
+
+//        Log.d("mainViewVideoTrack", "video track name: "+ mainViewVideoTrack.getName());
+        if (newMainViewVideoTrack != null) {
+            Log.d("newMainViewVideoTrack", "main video track not null");
+            Log.d("newMainViewVideoTrack", "video track name: "+ newMainViewVideoTrack.getName());
+            if (mainViewVideoTrack != null && newMainViewVideoTrack != mainViewVideoTrack) {
+                if (mainViewVideoTrack.getRenderers().size() > 0) {
+                    mainViewVideoTrack.removeRenderer(primaryVideoView);
+                }
+                VideoView newView = sideViews.get(sideViews.size());
+                VideoTrack newVideoTrack = mainViewVideoTrack;
+                newVideoTrack.addRenderer(newView);
+                newView.setVisibility(View.VISIBLE);
+            }
+            mainViewVideoTrack = newMainViewVideoTrack;
+            mainViewVideoTrack.addRenderer(primaryVideoView);
+            primaryVideoView.setVisibility(View.VISIBLE);
+            if (mainViewVideoTrack.isEnabled()) {
+                primaryVideoView.setBackgroundColor(Color.TRANSPARENT);
+            } else {
+                primaryVideoView.setBackgroundColor(Color.BLACK);
+            }
+
+        }
+
+    }
+
+    /*
      * The actions performed during disconnect.
      */
     private void setDisconnectAction() {
@@ -376,32 +581,40 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
         callEndText.setOnClickListener(disconnectClickListener());
     }
 
+    private void resetAndRebuildVideoViews() {
+        removeAllVideoRenderers();
+        populateVideoViews();
+    }
+
     /*
      * Called when participant joins the room
      */
     private void addRemoteParticipant(RemoteParticipant participant) {
         participantIdentity = participant.getIdentity();
 
+        remoteParticipants.add(participant);
+        adjustSideViews();
+
+        /*
+         * Start listening for participant media events
+         */
+        participant.setListener(remoteParticipantListener());
 
         /*
          * Add participant renderer
-         */
         if (participant.getRemoteVideoTracks().size() > 0) {
             RemoteVideoTrackPublication remoteVideoTrackPublication =
                     participant.getRemoteVideoTracks().get(0);
 
             /*
              * Only render video tracks that are subscribed to
-             */
+
             if (remoteVideoTrackPublication.isTrackSubscribed()) {
                 addRemoteParticipantVideo(remoteVideoTrackPublication.getRemoteVideoTrack());
             }
         }
 
-        /*
-         * Start listening for participant media events
-         */
-        participant.setListener(remoteParticipantListener());
+        */
     }
 
     /*
@@ -409,7 +622,7 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
      */
     @SuppressLint("LongLogTag")
     private void addRemoteParticipantVideo(VideoTrack videoTrack) {
-
+        /*
         boolean screenShare = false;
 
         Log.d("originalRemoteTrack", String.valueOf(originalRemoteTrack));
@@ -429,6 +642,8 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
         }
         videoTrack.addRenderer(primaryVideoView);
         primaryVideoView.setVisibility(View.VISIBLE);
+
+     */
     }
 
     private void moveLocalVideoToThumbnailView() {
@@ -454,25 +669,33 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
             return;
         }
 
+        remoteParticipants.remove(participant);
+
+        adjustSideViews();
         /*
          * Remove participant renderer
          */
+        /*
         if (participant.getRemoteVideoTracks().size() > 0) {
             RemoteVideoTrackPublication remoteVideoTrackPublication =
                     participant.getRemoteVideoTracks().get(0);
 
             /*
              * Remove video only if subscribed to participant track
-             */
             if (remoteVideoTrackPublication.isTrackSubscribed()) {
                 removeParticipantVideo(remoteVideoTrackPublication.getRemoteVideoTrack());
             }
         }
+
+         */
     }
 
     private void removeParticipantVideo(VideoTrack videoTrack) {
+        /*
         primaryVideoView.setVisibility(View.GONE);
         videoTrack.removeRenderer(primaryVideoView);
+
+         */
     }
 
     /*
@@ -487,7 +710,10 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
 
                 final List<RemoteParticipant> remoteParticipants = room.getRemoteParticipants();
                 if (remoteParticipants != null && !remoteParticipants.isEmpty()) {
-                    addRemoteParticipant(remoteParticipants.get(0));
+                    for (RemoteParticipant participant: remoteParticipants) {
+                        addRemoteParticipant(participant);
+                    }
+//                    addRemoteParticipant(remoteParticipants.get(0));
                 }
             }
 
@@ -661,7 +887,9 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
                         remoteVideoTrack.isEnabled(),
                         remoteVideoTrack.getName()));
                 publishEvent(CallEvent.VIDEO_TRACK_ADDED);
-                addRemoteParticipantVideo(remoteVideoTrack);
+//                addRemoteParticipantVideo(remoteVideoTrack);
+                resetAndRebuildVideoViews();
+
             }
 
             @Override
@@ -686,7 +914,8 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
                         remoteVideoTrack.isEnabled(),
                         remoteVideoTrack.getName()));
                 publishEvent(CallEvent.VIDEO_TRACK_REMOVED);
-                removeParticipantVideo(remoteVideoTrack);
+//                removeParticipantVideo(remoteVideoTrack);
+                resetAndRebuildVideoViews();
             }
 
             @Override
@@ -760,12 +989,12 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
 
             @Override
             public void onVideoTrackEnabled(RemoteParticipant remoteParticipant, RemoteVideoTrackPublication remoteVideoTrackPublication) {
-
+                resetAndRebuildVideoViews();
             }
 
             @Override
             public void onVideoTrackDisabled(RemoteParticipant remoteParticipant, RemoteVideoTrackPublication remoteVideoTrackPublication) {
-
+                resetAndRebuildVideoViews();
             }
         };
     }
@@ -966,4 +1195,26 @@ public class TwilioVideoActivity extends AppCompatActivity implements CallAction
         TwilioVideoManager.getInstance().publishEvent(event, data);
     }
 
+
+    /**
+     * This method converts device specific pixels to density independent pixels.
+     *
+     * @param px A value in px (pixels) unit. Which we need to convert into db
+     * @param context Context to get resources and device specific display metrics
+     * @return A float value to represent dp equivalent to px value
+     */
+    public static float convertPixelsToDp(float px, Context context){
+        return px / ((float) context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+    }
+
+    /**
+     * This method converts dp unit to equivalent pixels, depending on device density.
+     *
+     * @param dp A value in dp (density independent pixels) unit. Which we need to convert into pixels
+     * @param context Context to get resources and device specific display metrics
+     * @return A float value to represent px equivalent to dp depending on device density
+     */
+    public static float convertDpToPixel(float dp, Context context){
+        return dp * ((float) context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+    }
 }

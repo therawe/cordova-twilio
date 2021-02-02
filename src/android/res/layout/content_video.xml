@@ -9,29 +9,28 @@
              tools:showIn="@layout/activity_video">
 
     <com.twilio.video.VideoView
-        android:id="@+id/thumbnail_video_view"
-        app:overlaySurface="true"
-        app:mirror="true"
-        android:visibility="gone"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
-        android:layout_margin="16dp"
-        android:layout_gravity="top|end"
-        android:background="@drawable/rounded_gray_bg"
-        />
+        android:id="@+id/primary_video_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
     <com.twilio.video.VideoView
-        android:id="@+id/primary_video_view"
+        android:id="@+id/thumbnail_video_view"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp"
+        android:background="@drawable/rounded_gray_bg"
         android:visibility="gone"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        app:mirror="true"
+        app:overlaySurface="true" />
 
-   <!--  <LinearLayout
-        android:id="@+id/status"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="bottom"> -->
+    <!--  <LinearLayout
+         android:id="@+id/status"
+         android:layout_width="fill_parent"
+         android:layout_height="wrap_content"
+         android:orientation="vertical"
+         android:layout_gravity="bottom"> -->
 
         <!-- <TextView
             android:id="@+id/video_status_textview"
